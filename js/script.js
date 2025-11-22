@@ -35,18 +35,21 @@ async function initApp() {
 }
 
 /* --- DATA FETCHING --- */
+// ... existing code ...
+/* --- DATA FETCHING --- */
 async function loadData() {
   try {
     // 1. Tenta carregar do Firebase (Se configurado)
     if (typeof db !== 'undefined') {
       console.log("Tentando carregar do Firebase...");
       try {
-        // Carrega Comercios
+        // Carrega todos os dados do Firebase
         const comSnap = await db.ref('comercios').once('value');
         const promSnap = await db.ref('promocoes').once('value');
+        const storSnap = await db.ref('stories').once('value');
+        const catSnap = await db.ref('categorias').once('value');
         
         if (comSnap.exists()) {
-          // Converte objeto em array
           const dataObj = comSnap.val();
           state.comercios = Object.keys(dataObj).map(key => dataObj[key]);
           console.log("Comercios carregados do Firebase!", state.comercios.length);
@@ -57,10 +60,50 @@ async function loadData() {
           state.promocoes = Object.keys(dataObj).map(key => dataObj[key]);
           console.log("Promoções carregadas do Firebase!");
         }
+        
+        if (storSnap.exists()) {
+          const dataObj = storSnap.val();
+          state.stories = Object.keys(dataObj).map(key => dataObj[key]);
+          console.log("Stories carregados do Firebase!");
+        }
+
+        if (catSnap.exists()) {
+            const dataObj = catSnap.val();
+            state.categorias = Object.keys(dataObj).map(key => dataObj[key]);
+            console.log("Categorias carregadas do Firebase!");
+        }
+
       } catch (e) {
         console.log("Firebase não configurado ou vazio. Usando local.", e);
       }
     }
+
+    // 2. Se não carregou do Firebase (ou se ele estiver vazio), carrega do JSON local
+    if (state.comercios.length === 0) {
+      console.log("Carregando do JSON Local...");
+      const [comRes, promRes, storRes, catRes] = await Promise.all([
+        fetch('data/comercios.json'),
+        fetch('data/promocoes.json'),
+        fetch('data/stories.json'),
+        fetch('data/categorias.json')
+      ]);
+
+      if (comRes.ok) state.comercios = await comRes.json();
+      if (promRes.ok) state.promocoes = await promRes.json();
+      if (storRes.ok) state.stories = await storRes.json();
+      if (catRes.ok) state.categorias = await catRes.json();
+    }
+
+    console.log('Dados finais carregados:', state);
+
+  } catch (error) {
+    console.warn('Erro ao carregar dados (Offline ou Erro). Carregando backup.', error);
+    loadFallbackData();
+  }
+}
+
+/* --- RENDERING FUNCTIONS --- */
+// ... existing code ...
 
     // 2. Se não carregou do Firebase (ou se ele estiver vazio), carrega do JSON local
     if (state.comercios.length === 0) {
