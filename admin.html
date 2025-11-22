@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - PromoCity</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Bootstrap Icons -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  
+  <!-- FIREBASE SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  
+  <style>
+    /* Tela de Login Falso */
+    #loginScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #1e293b; display: flex; justify-content: center; align-items: center; flex-direction: column;
+      z-index: 9999;
+    }
+    #loginScreen input { padding: 10px; border-radius: 8px; border: none; margin-bottom: 10px; width: 250px; text-align: center; }
+    #loginScreen button { padding: 10px 20px; border-radius: 8px; border: none; background: #0d6efd; color: white; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
+<body style="background: #f8fafc;">
+
+  <!-- TELA DE LOGIN -->
+  <div id="loginScreen">
+    <h2 style="color: white; margin-bottom: 20px;">Área Restrita 🔒</h2>
+    <input type="password" id="adminPass" placeholder="Digite a senha de admin">
+    <button onclick="checkLogin()">Entrar</button>
+  </div>
+
+  <!-- CONTEÚDO DO ADMIN (Oculto inicialmente) -->
+  <div id="adminContent" style="display: none;">
+    <nav style="background: #1e293b; color: white; padding: 16px;">
+      <div class="container header-content">
+        <!-- Logo Colorido -->
+        <div class="brand-logo">
+          <span style="color: #0d6efd;">Pro</span><span style="color: #f59e0b;">mo</span><span style="color: #198754;">Ci</span><span style="color: #dc3545;">ty</span><span style="color: #0d6efd;">Vai</span>
+        </div>
+        <a href="index.html" style="font-size:0.9rem; opacity:0.8; color: white;">Ver Site</a>
+      </div>
+    </nav>
+
+    <main class="admin-container">
+      
+      <!-- Intro -->
+      <div class="admin-card">
+        <h2>Gerenciador Fácil</h2>
+        <p style="color: #64748b; font-size: 0.9rem; margin-top: 8px;">
+          Preencha os dados abaixo e clique em <strong>"Salvar Arquivo"</strong>. 
+          Depois, basta substituir o arquivo na pasta <code>data</code>.
+        </p>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="btn btn-primary" onclick="showTab('loja')">Nova Loja</button>
+        <button class="btn btn-outline" onclick="showTab('promo')">Nova Promoção</button>
+      </div>
+
+      <!-- FORM LOJA -->
+      <div id="tab-loja" class="admin-card">
+        <h3>Cadastrar Novo Comércio</h3>
+        <form id="formLoja">
+          <div class="form-group">
+            <label>Nome da Loja</label>
+            <input type="text" class="form-control" name="nome" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Categoria</label>
+            <select class="form-control" name="categoria">
+              <option value="alimentacao">Alimentação 🍔</option>
+              <option value="moda">Moda 👗</option>
+              <option value="servicos">Serviços 🛠️</option>
+              <option value="tecnologia">Tecnologia 📱</option>
+              <option value="lazer">Lazer 🎉</option>
+              <option value="saude">Saúde 💊</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Plano</label>
+            <select class="form-control" name="plano">
+              <option value="free">Grátis (Free)</option>
+              <option value="pro">Premium (PRO)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Logo da Loja (Quadrada)</label>
+            <input type="file" class="form-control" name="logoFile" accept="image/*">
+            <small style="color:gray">Arraste esta foto para a pasta <b>assets/img</b></small>
+          </div>
+
+          <div class="form-group">
+            <label>Capa da Loja (Retangular)</label>
+            <input type="file" class="form-control" name="capaFile" accept="image/*">
+            <small style="color:gray">Arraste esta foto para a pasta <b>assets/img</b></small>
+          </div>
+
+          <div class="form-group">
+            <label>WhatsApp (somente números)</label>
+            <input type="number" class="form-control" name="telefone" placeholder="5542999...">
+          </div>
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; background: #198754;">
+            ☁️ Salvar na Nuvem (Instantâneo)
+          </button>
+          <button type="button" id="btnCancelLoja" class="btn btn-outline" style="width: 100%; margin-top: 10px; display: none;" onclick="cancelEdit('loja')">Cancelar Edição</button>
+        </form>
+
+        <hr style="margin: 30px 0; border-top: 1px solid #eee;">
+        <h4 class="mb-4">Gerenciar Lojas</h4>
+        <div id="listaLojas">
+          <p style="text-align:center; color:gray">Carregando lista...</p>
+        </div>
+      </div>
+
+      <!-- FORM PROMO -->
+      <div id="tab-promo" class="admin-card d-none">
+        <h3>Cadastrar Nova Promoção</h3>
+        <form id="formPromo">
+          <div class="form-group">
+            <label>ID da Loja (Número)</label>
+            <input type="number" class="form-control" name="commerceId" required placeholder="Ex: 99 (Samuray)">
+          </div>
+          
+          <div class="form-group">
+            <label>Título da Oferta</label>
+            <input type="text" class="form-control" name="titulo" required placeholder="Ex: X-Bacon Duplo">
+          </div>
+
+          <div class="form-group">
+            <label>Preço Promocional (R$)</label>
+            <input type="text" class="form-control" name="preco" placeholder="29,90">
+          </div>
+
+          <div class="form-group">
+            <label>Preço Original (R$)</label>
+            <input type="text" class="form-control" name="precoOriginal" placeholder="49,90">
+          </div>
+
+          <div class="form-group">
+            <label>Foto da Oferta</label>
+            <input type="file" class="form-control" name="imagemFile" accept="image/*">
+            <small style="color:gray">Arraste esta foto para a pasta <b>assets/img</b></small>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; background: #198754;">
+            ☁️ Salvar na Nuvem (Instantâneo)
+          </button>
+          <button type="button" id="btnCancelPromo" class="btn btn-outline" style="width: 100%; margin-top: 10px; display: none;" onclick="cancelEdit('promo')">Cancelar Edição</button>
+        </form>
+
+        <hr style="margin: 30px 0; border-top: 1px solid #eee;">
+        <h4 class="mb-4">Gerenciar Promoções</h4>
+        <div id="listaPromos">
+          <p style="text-align:center; color:gray">Carregando lista...</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/firebase-config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

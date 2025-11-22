@@ -1,0 +1,6 @@
+[
+  { "id": "st_1", "commerceId": 1, "titulo": "Promoção Relâmpago!", "imagem": "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=500&q=80", "viewed": false },
+  { "id": "st_2", "commerceId": 2, "titulo": "Nova Coleção", "imagem": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&q=80", "viewed": false },
+  { "id": "st_3", "commerceId": 3, "titulo": "Rodízio hoje!", "imagem": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80", "viewed": false },
+  { "id": "st_4", "commerceId": 10, "titulo": "Oferta Tech", "imagem": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=500&q=80", "viewed": false }
+]
